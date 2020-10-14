@@ -25,9 +25,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
+
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -117,6 +119,7 @@ import com.fsck.k9.ui.permissions.PermissionUiHelper;
 import org.jetbrains.annotations.NotNull;
 import org.openintents.openpgp.OpenPgpApiManager;
 import org.openintents.openpgp.util.OpenPgpApi;
+
 import timber.log.Timber;
 
 
@@ -172,7 +175,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
 
     /**
      * Regular expression to remove the first localized "Re:" prefix in subjects.
-     *
+     * <p>
      * Currently:
      * - "Aw:" (german: abbreviation for "Antwort")
      */
@@ -496,11 +499,9 @@ public class MessageCompose extends K9Activity implements OnClickListener,
      * </ul>
      * </p>
      *
-     * @param intent
-     *         The (external) intent that started the activity.
-     *
+     * @param intent The (external) intent that started the activity.
      * @return {@code true}, if this activity was started by an external intent. {@code false},
-     *         otherwise.
+     * otherwise.
      */
     private boolean initFromIntent(final Intent intent) {
         boolean startedByExternalIntent = false;
@@ -1196,8 +1197,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
      * Pull out the parts of the now loaded source message and apply them to the new message
      * depending on the type of message being composed.
      *
-     * @param messageViewInfo
-     *         The source message used to populate the various text fields.
+     * @param messageViewInfo The source message used to populate the various text fields.
      */
     private void processSourceMessage(MessageViewInfo messageViewInfo) {
         try {
@@ -1311,9 +1311,19 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         // Quote the message and setup the UI.
         if (asAttachment) {
             attachmentPresenter.processMessageToForwardAsAttachment(messageViewInfo);
+            Identity useIdentity = IdentityHelper.getRecipientIdentityFromMessage(account, message);
+            Identity defaultIdentity = account.getIdentity(0);
+            if (useIdentity != defaultIdentity) {
+                switchToIdentity(useIdentity);
+            }
         } else {
             quotedMessagePresenter.processMessageToForward(messageViewInfo);
             attachmentPresenter.processMessageToForward(messageViewInfo);
+            Identity useIdentity = IdentityHelper.getRecipientIdentityFromMessage(account, message);
+            Identity defaultIdentity = account.getIdentity(0);
+            if (useIdentity != defaultIdentity) {
+                switchToIdentity(useIdentity);
+            }
         }
     }
 
@@ -1412,7 +1422,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         final MessageReference messageReference;
 
         SendMessageTask(Context context, Account account, Contacts contacts, Message message,
-                Long draftId, String plaintextSubject, MessageReference messageReference) {
+                        Long draftId, String plaintextSubject, MessageReference messageReference) {
             this.context = context;
             this.account = account;
             this.contacts = contacts;
@@ -1465,8 +1475,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
      * When we are launched with an intent that includes a mailto: URI, we can actually
      * gather quite a few of our message fields from it.
      *
-     * @param mailTo
-     *         The MailTo object we use to initialize message field
+     * @param mailTo The MailTo object we use to initialize message field
      */
     private void initializeFromMailto(MailTo mailTo) {
         recipientPresenter.initFromMailto(mailTo);
@@ -1637,7 +1646,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
 
         @Override
         public void startIntentSenderForMessageLoaderHelper(IntentSender si, int requestCode, Intent fillIntent,
-                int flagsMask, int flagValues, int extraFlags) {
+                                                            int flagsMask, int flagValues, int extraFlags) {
             try {
                 requestCode |= REQUEST_MASK_LOADER_HELPER;
                 startIntentSenderForResult(si, requestCode, fillIntent, flagsMask, flagValues, extraFlags);
